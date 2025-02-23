@@ -1,13 +1,14 @@
+import json
 import warnings
 from datetime import datetime, timedelta, timezone
 
 import pytest
 from fastapi import status
-from fastapi.responses import RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
 from fastapi_sunset import SunsetConfiguration
-from fastapi_sunset.behaviors import BasePeriodBehavior, DoNothing, RedirectUsers
+from fastapi_sunset.behaviors import BasePeriodBehavior, DoNothing, RedirectUsers, RespondError
 
 
 class TestBehaviorBase:
@@ -158,3 +159,58 @@ class TestRedirectUsers(TestBehaviorBase):
         assert isinstance(response, RedirectResponse)
         assert response.status_code == status.HTTP_307_TEMPORARY_REDIRECT
         assert response.headers["location"] == redirect_url
+
+
+class TestRespondError(TestBehaviorBase):
+    """Test the `RespondError` class."""
+
+    @pytest.fixture
+    def behavior(self) -> RespondError:
+        """Return a RespondError instance for testing."""
+        return RespondError(message="Test message")
+
+    def test_respond_error_initialization(self) -> None:
+        """Test RespondError can be initialized with custom message and error code."""
+        behavior = RespondError(message="Custom message", error_code=status.HTTP_418_IM_A_TEAPOT)
+        assert behavior.message == "Custom message"
+        assert behavior.error_code == status.HTTP_418_IM_A_TEAPOT
+
+    def test_respond_error_default_error_code(self, behavior: RespondError) -> None:
+        """Test RespondError uses HTTP 410 Gone as default error code."""
+        assert behavior.error_code == status.HTTP_410_GONE
+
+    def test_behave_with_response_structure(
+        self, behavior: RespondError, sunset_config: SunsetConfiguration
+    ) -> None:
+        """Test behave_with returns properly structured JSONResponse."""
+        response = behavior.behave_with(sunset_config)
+
+        assert isinstance(response, JSONResponse)
+        assert isinstance(response.body, bytes)
+
+        body = json.loads(response.body)
+        assert body["detail"] == "Test message"
+
+    def test_behave_with_status_code(self, sunset_config: SunsetConfiguration) -> None:
+        """Test behave_with returns correct status code."""
+        behavior = RespondError(message="Test message", error_code=status.HTTP_418_IM_A_TEAPOT)
+        response = behavior.behave_with(sunset_config)
+        assert response.status_code == status.HTTP_418_IM_A_TEAPOT
+
+    def test_message_formatting_with_sunset_date(self, sunset_config: SunsetConfiguration) -> None:
+        """Test message formatting includes sunset date."""
+        behavior = RespondError(message="API sunsets on {sunset_on}")
+        response = behavior.behave_with(sunset_config)
+
+        body = json.loads(response.body)
+        assert "2024-01-01" in body["detail"]
+
+    def test_message_formatting_with_alternative_url(
+        self, sunset_config: SunsetConfiguration
+    ) -> None:
+        """Test message formatting includes alternative URL."""
+        behavior = RespondError(message="Please use {alternative_url}")
+        response = behavior.behave_with(sunset_config)
+
+        body = json.loads(response.body)
+        assert "https://api.example.com/v2" in body["detail"]
