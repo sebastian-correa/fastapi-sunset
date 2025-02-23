@@ -2,11 +2,12 @@ import warnings
 from datetime import datetime, timedelta, timezone
 
 import pytest
+from fastapi import status
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
 from fastapi_sunset import SunsetConfiguration
-from fastapi_sunset.behaviors import BasePeriodBehavior
-from fastapi_sunset.behaviors.do_nothing import DoNothing
+from fastapi_sunset.behaviors import BasePeriodBehavior, DoNothing, RedirectUsers
 
 
 class TestBehaviorBase:
@@ -125,3 +126,35 @@ class TestDoNothingBehavior(TestBehaviorBase):
         final_config = sunset_config.model_dump()
         assert initial_config == final_config
         assert outcome is None
+
+
+class TestRedirectUsers(TestBehaviorBase):
+    """Test the `RedirectUsers` class."""
+
+    @pytest.fixture
+    def redirect_url(self) -> str:
+        """Provide a test URL."""
+        return "https://api.example.com/v2"
+
+    @pytest.fixture
+    def behavior(self, redirect_url: str) -> RedirectUsers:
+        """Create a RedirectUsers instance for testing."""
+        return RedirectUsers(url=redirect_url)
+
+    def test_initialization(self, behavior: RedirectUsers, redirect_url: str) -> None:
+        """Test that RedirectUsers initializes correctly."""
+        assert isinstance(behavior, RedirectUsers)
+        assert issubclass(RedirectUsers, BasePeriodBehavior)
+        assert behavior.url == redirect_url
+
+    def test_behave_with_returns_redirect(
+        self,
+        behavior: RedirectUsers,
+        sunset_config: SunsetConfiguration,
+        redirect_url: str,
+    ) -> None:
+        """Test that behave_with returns correct RedirectResponse."""
+        response = behavior.behave_with(sunset_config)
+        assert isinstance(response, RedirectResponse)
+        assert response.status_code == status.HTTP_307_TEMPORARY_REDIRECT
+        assert response.headers["location"] == redirect_url
