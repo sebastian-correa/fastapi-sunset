@@ -1,0 +1,9 @@
+[general]
+ignore=B6
+regex-style-search=True
+
+[body-max-line-length]
+line-length=72
+
+[ignore-body-lines]
+regex=https?

@@ -25,7 +25,4 @@
     "files.trimTrailingWhitespace": true,
     // OTHER
     "autoDocstring.docstringFormat": "google",
-    "markdownlint.config": {
-        "MD033": false
-    },
 }
