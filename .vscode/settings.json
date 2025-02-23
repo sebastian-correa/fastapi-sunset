@@ -1,0 +1,31 @@
+{
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python3",
+    "python.analysis.typeCheckingMode": "basic",
+    // Hide .venv from explorer and searchbar
+    "files.watcherExclude": {
+        "**/.venv/**": true
+    },
+    "search.exclude": {
+        "**/.venv/": true,
+    },
+    // Linting and formatting
+    // From https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff
+    "[python]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports": "explicit"
+        },
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    },
+    "editor.rulers": [
+        100
+    ],
+    "files.trimFinalNewlines": true,
+    "files.trimTrailingWhitespace": true,
+    // OTHER
+    "autoDocstring.docstringFormat": "google",
+    "markdownlint.config": {
+        "MD033": false
+    },
+}
