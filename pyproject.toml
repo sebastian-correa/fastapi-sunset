@@ -1,0 +1,66 @@
+[project]
+name = "fastapi-sunset"
+version = "0.1.0"
+description = "A lightweight and [RFC 8594](https://datatracker.ietf.org/doc/html/rfc8594) compliant FastAPI middleware to facilitate endpoint deprecation."
+readme = "README.md"
+authors = [
+    { name = "Sebastian Correa", email = "43179146+sebastian-correa@users.noreply.github.com" },
+]
+requires-python = ">=3.10"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = ["pytest>=8.3.4", "ruff>=0.9.7"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-exclude = [".venv"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+
+extend-ignore = [
+    "G004",   # Don't allow f-string in log calls.
+    "ISC001", # Implicitly concatenated string literals on one line might conflict with format.
+    "B905",   # `zip()` without an explicit `strict=` parameter
+    "CPY",    # Ensure all files have a copyright notice.
+    "ANN401", # Sometimes we need Any.
+    "D106",   # Missing docstring in public nested class
+    "D107",   # We document `__init__` in the class itself.
+    "COM812", # Conflict with formatting: missing trailing comma.
+    "FIX",    # Fixme comments are allowed.
+    "TD002",  # Allow TODO comments without author.
+    "TD003",  # Allow TODO comments without issue links.
+]
+
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**/*.py" = [
+    "INP001", # INP001 - Implicit namespace packages are allowed in tests.
+    "S101",   # S101 - Checks for uses of the assert keyword. - necessary for testing.
+    "B018",   # B018 - Found useless expression - necessary for testing exceptions are raised.
+    "D100",   # D100 - Module dostrings not required in test files.
+    "D104",   # D104 - Package dostrings not required in test files.
+    "ARG",    # ARG - Unused args are common in tests with mock patches and mock functions.
+]
+
+"**/*/__init__.py" = [
+    "D104", # D104 - Package dostrings not required in __init__.py files.
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.pycodestyle]
+ignore-overlong-task-comments = true
+
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
