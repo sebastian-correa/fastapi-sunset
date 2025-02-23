@@ -1,0 +1,45 @@
+default_install_hook_types: [pre-commit, pre-rebase, commit-msg]
+default_stages: [pre-commit, pre-rebase]
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.5
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-ast
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: check-illegal-windows-names
+      - id: check-json
+        types: [json]
+        exclude: ^\.vscode/.*$
+      - id: check-merge-conflict
+      - id: check-symlinks
+      - id: check-toml
+      - id: check-vcs-permalinks
+      - id: debug-statements
+      - id: detect-private-key
+        types: [toml]
+      - id: name-tests-test
+      - id: no-commit-to-branch
+      - id: trailing-whitespace
+        types: [text]
+  - repo: https://github.com/thlorenz/doctoc
+    rev: "v2.2.0"
+    hooks:
+      - id: doctoc
+        args: ["--github", "--maxlevel", "6", "--update-only"]
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: "v0.17.2"
+    hooks:
+      - id: markdownlint-cli2
+        args: ["--config", ".markdownlint-cli2.jsonc"]
+  - repo: https://github.com/jorisroovers/gitlint
+    rev: "v0.19.1"
+    hooks:
+      - id: gitlint

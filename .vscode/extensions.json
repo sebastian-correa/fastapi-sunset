@@ -1,0 +1,10 @@
+{
+    "recommendations": [
+        "njpwerner.autodocstring",
+        "mhutchie.git-graph",
+        "ms-python.python",
+        "yzhang.markdown-all-in-one",
+        "aaron-bond.better-comments",
+        "charliermarsh.ruff"
+    ]
+}
