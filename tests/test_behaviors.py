@@ -1,3 +1,4 @@
+import warnings
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -5,10 +6,11 @@ from pydantic import BaseModel
 
 from fastapi_sunset import SunsetConfiguration
 from fastapi_sunset.behaviors import BasePeriodBehavior
+from fastapi_sunset.behaviors.do_nothing import DoNothing
 
 
-class TestBasePeriodBehavior:
-    """Test the `BasePeriodBehavior` class."""
+class TestBehaviorBase:
+    """Base class for testing behaviors."""
 
     @pytest.fixture
     def behavior(self) -> BasePeriodBehavior:
@@ -24,13 +26,17 @@ class TestBasePeriodBehavior:
         return SunsetConfiguration(
             sunset_on=datetime(2024, 1, 1, 12, tzinfo=timezone.utc),
             alternative_url="https://api.example.com/v2",
-            upcoming_sunset_behavior=BasePeriodBehavior(),
+            upcoming_sunset_behavior=behavior,
+            pre_sunset_grace_period_behavior=behavior,
             pre_sunset_grace_period_length=timedelta(days=7),
-            pre_sunset_grace_period_behavior=BasePeriodBehavior(),
+            post_sunset_grace_period_behavior=behavior,
             post_sunset_grace_period_length=timedelta(days=7),
-            post_sunset_grace_period_behavior=BasePeriodBehavior(),
-            sunset_period_behavior=BasePeriodBehavior(),
+            sunset_period_behavior=behavior,
         )
+
+
+class TestBasePeriodBehavior(TestBehaviorBase):
+    """Test the `BasePeriodBehavior` class."""
 
     def test_base_behavior_initialization(self) -> None:
         """Test that BasePeriodBehavior can be initialized."""
@@ -86,3 +92,36 @@ class TestBasePeriodBehavior:
         assert str(exc_info.value) == (
             "You should implement different behaviors in subclasses of BasePeriodBehavior."
         )
+
+
+class TestDoNothingBehavior(TestBehaviorBase):
+    """Test the `DoNothing` class."""
+
+    @pytest.fixture
+    def behavior(self) -> DoNothing:
+        """Return a `DoNothing` instance for testing."""
+        return DoNothing()
+
+    def test_base_behavior_initialization(self) -> None:
+        """Test that BasePeriodBehavior can be initialized."""
+        behavior = BasePeriodBehavior()
+        assert isinstance(behavior, BaseModel)
+        assert behavior.include_headres is True
+
+    def test_inheritance(self, behavior: DoNothing) -> None:
+        """Test that DoNothing inherits from BasePeriodBehavior."""
+        assert isinstance(behavior, BasePeriodBehavior)
+
+    def test_behave_with_does_nothing(
+        self, behavior: DoNothing, sunset_config: SunsetConfiguration
+    ) -> None:
+        """Test that behave_with method doesn't alter anything."""
+        initial_config = sunset_config.model_dump()
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            outcome = behavior.behave_with(sunset_config)
+
+        final_config = sunset_config.model_dump()
+        assert initial_config == final_config
+        assert outcome is None
