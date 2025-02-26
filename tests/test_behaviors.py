@@ -1,6 +1,7 @@
 import json
 import warnings
 from datetime import datetime, timedelta, timezone
+from unittest.mock import patch
 
 import pytest
 from fastapi import status
@@ -8,7 +9,13 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
 from fastapi_sunset import SunsetConfiguration
-from fastapi_sunset.behaviors import BasePeriodBehavior, DoNothing, RedirectUsers, RespondError
+from fastapi_sunset.behaviors import (
+    BasePeriodBehavior,
+    DoNothing,
+    RedirectUsers,
+    RespondError,
+    WarnDevelopers,
+)
 
 
 class TestBehaviorBase:
@@ -214,3 +221,58 @@ class TestRespondError(TestBehaviorBase):
 
         body = json.loads(response.body)
         assert "https://api.example.com/v2" in body["detail"]
+
+
+class TestWarnDevelopers(TestBehaviorBase):
+    """Test the `WarnDevelopers` class."""
+
+    @pytest.fixture
+    def behavior(self) -> WarnDevelopers:
+        """Return a WarnDevelopers instance for testing."""
+        return WarnDevelopers(
+            message="API will sunset on {sunset_on}. Use {alternative_url} instead."
+        )
+
+    def test_warning_message_formatting(
+        self, behavior: WarnDevelopers, sunset_config: SunsetConfiguration
+    ) -> None:
+        """Test that the warning message is correctly formatted."""
+        with pytest.warns(FutureWarning) as warning_info:
+            behavior.behave_with(sunset_config)
+
+        expected_message = (
+            "API will sunset on 2024-01-01 12:00:00+00:00. Use https://api.example.com/v2 instead."
+        )
+        assert str(warning_info[0].message) == expected_message
+
+    def test_warning_without_alternative_url(
+        self, behavior: WarnDevelopers, sunset_config: SunsetConfiguration
+    ) -> None:
+        """Test warning formatting when alternative_url is None."""
+        sunset_config.alternative_url = None
+        with pytest.warns(FutureWarning) as warning_info:
+            behavior.behave_with(sunset_config)
+
+        expected_message = "API will sunset on 2024-01-01 12:00:00+00:00. Use None instead."
+        assert str(warning_info[0].message) == expected_message
+
+    def test_custom_warning_category(self, sunset_config: SunsetConfiguration) -> None:
+        """Test that custom warning category is respected."""
+        behavior = WarnDevelopers(message="Test message", category=DeprecationWarning)
+
+        with pytest.warns(DeprecationWarning):
+            behavior.behave_with(sunset_config)
+
+    def test_warning_stacklevel(
+        self, behavior: WarnDevelopers, sunset_config: SunsetConfiguration
+    ) -> None:
+        """Test that warning is emitted with correct stacklevel."""
+        with patch("warnings.warn") as mock_warn:
+            behavior.behave_with(sunset_config)
+
+        mock_warn.assert_called_once()
+        assert mock_warn.call_args[1]["stacklevel"] == 2  # noqa: PLR2004; it's just level 2.
+
+    def test_default_warning_category(self, behavior: WarnDevelopers) -> None:
+        """Test that default warning category is FutureWarning."""
+        assert issubclass(behavior.category, FutureWarning)
