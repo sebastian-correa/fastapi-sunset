@@ -7,6 +7,11 @@ authors = [
     { name = "Sebastian Correa", email = "43179146+sebastian-correa@users.noreply.github.com" },
 ]
 requires-python = ">=3.10"
+dependencies = [
+    # Dependencies such that we have Pydantic v2, needed for AwareDatetime.
+    "fastapi>=0.100.0",
+    "pydantic>=2.0.0",
+]
 
 [build-system]
 requires = ["hatchling"]
