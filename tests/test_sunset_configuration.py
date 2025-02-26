@@ -1,9 +1,16 @@
 from datetime import datetime, timedelta, timezone
 
 import pytest
+from fastapi import status
 from pydantic import ValidationError
 
-from fastapi_sunset import BasePeriodBehavior, SunsetConfiguration
+from fastapi_sunset import (
+    BasePeriodBehavior,
+    DoNothing,
+    RespondError,
+    SunsetConfiguration,
+    WarnDevelopers,
+)
 
 
 class TestSunsetConfiguration:
@@ -246,3 +253,30 @@ class TestSunsetConfiguration:
                 post_sunset_grace_period_behavior=behaviors["post_grace"],
                 sunset_period_behavior=behaviors["sunset"],
             )
+
+    def test_sunset_configuration_defaults(self) -> None:
+        """Test that SunsetConfiguration default values."""
+        sunset_configuration = SunsetConfiguration(
+            sunset_on=datetime(2024, 1, 1, 12, tzinfo=timezone.utc)
+        )
+
+        assert sunset_configuration.alternative_url is None
+        assert isinstance(sunset_configuration.upcoming_sunset_behavior, DoNothing)
+        assert sunset_configuration.upcoming_sunset_behavior.include_headres
+
+        assert sunset_configuration.pre_sunset_grace_period_length == timedelta(14)
+        behavior = sunset_configuration.pre_sunset_grace_period_behavior
+        assert isinstance(behavior, WarnDevelopers)
+        assert behavior.include_headres
+        assert behavior.category is DeprecationWarning
+
+        assert sunset_configuration.post_sunset_grace_period_length == timedelta(14)
+        behavior = sunset_configuration.post_sunset_grace_period_behavior
+        assert isinstance(behavior, WarnDevelopers)
+        assert behavior.include_headres
+        assert behavior.category is DeprecationWarning
+
+        behavior = sunset_configuration.sunset_period_behavior
+        assert isinstance(behavior, RespondError)
+        assert behavior.include_headres
+        assert behavior.error_code == status.HTTP_410_GONE
