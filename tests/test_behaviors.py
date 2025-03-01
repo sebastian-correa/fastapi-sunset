@@ -51,7 +51,7 @@ class TestBasePeriodBehavior(TestBehaviorBase):
         """Test that BasePeriodBehavior can be initialized."""
         behavior = BasePeriodBehavior()
         assert isinstance(behavior, BaseModel)
-        assert behavior.include_headres is True
+        assert behavior.include_headers is True
 
     def test_format_message_without_message_attribute(
         self, sunset_config: SunsetConfiguration
@@ -115,7 +115,7 @@ class TestDoNothingBehavior(TestBehaviorBase):
         """Test that BasePeriodBehavior can be initialized."""
         behavior = BasePeriodBehavior()
         assert isinstance(behavior, BaseModel)
-        assert behavior.include_headres is True
+        assert behavior.include_headers is True
 
     def test_inheritance(self, behavior: DoNothing) -> None:
         """Test that DoNothing inherits from BasePeriodBehavior."""
