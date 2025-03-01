@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 class BasePeriodBehavior(BaseModel):
     """Do nothing special (i.e., continue running the endpoint as usual) during this period."""
 
-    include_headres: bool = True
+    include_headers: bool = True
 
     def format_message(self, sunset_configuration: SunsetConfiguration) -> str:
         """If the behavior has a `message`, format it with `sunset_on` and `alternative_url`.
