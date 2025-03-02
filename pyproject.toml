@@ -18,7 +18,12 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [dependency-groups]
-dev = ["pre-commit>=4.1.0", "pytest>=8.3.4", "ruff>=0.9.7"]
+dev = [
+    "pre-commit>=4.1.0",
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.25.3",
+    "ruff>=0.9.7",
+]
 
 [tool.ruff]
 line-length = 100
@@ -51,6 +56,7 @@ extend-ignore = [
     "D100",   # D100 - Module dostrings not required in test files.
     "D104",   # D104 - Package dostrings not required in test files.
     "ARG",    # ARG - Unused args are common in tests with mock patches and mock functions.
+    "SLF001", # Testig my own class demands private member access.
 ]
 
 "**/*/__init__.py" = [
@@ -74,3 +80,5 @@ line-ending = "auto"
 addopts = [
     "--import-mode=importlib", # https://docs.pytest.org/en/stable/explanation/goodpractices.html#which-import-mode
 ]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"

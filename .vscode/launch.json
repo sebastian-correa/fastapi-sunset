@@ -12,5 +12,13 @@
             "console": "integratedTerminal",
             "justMyCode": true,
         },
+        {
+            "name": "Pytest: All Tests",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+        },
     ],
 }
