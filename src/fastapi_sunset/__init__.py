@@ -8,6 +8,7 @@ from fastapi_sunset.behaviors import (
     WarnDevelopers,
 )
 from fastapi_sunset.configuration import SunsetConfiguration
+from fastapi_sunset.sunset import SunsetEndpointsMiddleware
 
 __all__ = [
     "BasePeriodBehavior",
@@ -15,5 +16,6 @@ __all__ = [
     "RedirectUsers",
     "RespondError",
     "SunsetConfiguration",
+    "SunsetEndpointsMiddleware",
     "WarnDevelopers",
 ]
