@@ -4,16 +4,23 @@ on: pull_request
 
 jobs:
   test-code:
-    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14-dev"]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: Setup Python ${{ matrix.python-version }}
         id: setup-python
         uses: actions/setup-python@v5
         with:
-          python-version-file: "pyproject.toml"
+          python-version: ${{ matrix.python-version }}
+
+      - name: Display full Python version
+        run: python -VV
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
@@ -21,6 +28,8 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
+        env:
+          UNSAFE_PYO3_SKIP_VERSION_CHECK: ${{ endsWith(matrix.python-version, '-dev') && '1' || '' }}
         run: uv sync --all-extras
 
       - name: Run tests
