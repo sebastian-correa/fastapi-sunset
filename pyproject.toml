@@ -1,6 +1,6 @@
 [project]
 name = "fastapi-sunset"
-version = "0.1.0"
+dynamic = ["version"]
 description = "A lightweight and [RFC 8594](https://datatracker.ietf.org/doc/html/rfc8594) compliant FastAPI middleware to facilitate endpoint deprecation."
 readme = "README.md"
 authors = [
@@ -14,11 +14,18 @@ dependencies = [
 ]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/fastapi_sunset/_version.py"
 
 [dependency-groups]
 dev = [
+    "fastapi[standard]>=0.115.8",
     "pre-commit>=4.1.0",
     "pytest>=8.3.4",
     "pytest-asyncio>=0.25.3",
